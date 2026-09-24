@@ -1,0 +1,36 @@
+# Team setup — the supervisor runs this ONCE after creating a team repo from the template.
+#   Actions tab → "Team setup" → Run workflow → enter the students' usernames → Run.
+# Creates labels, milestones, the starter backlog, and one onboarding issue per student,
+# from the files in .github/team-setup/ (edit those first, on github.com).
+# Safe to run again: it only adds what's missing.
+
+name: Team setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      students:
+        description: "Students' GitHub usernames, separated by spaces (e.g. ahmed-ali sara99)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  setup:
+    # Never run inside the template repo itself.
+    if: ${{ !github.event.repository.is_template }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Create labels, milestones and issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          STUDENTS: ${{ inputs.students }}
+        run: python .github/team-setup/setup.py

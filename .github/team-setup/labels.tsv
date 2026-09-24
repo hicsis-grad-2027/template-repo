@@ -1,0 +1,13 @@
+type:feature	1d76db	New behavior or user story
+type:bug	d73a4a	Something is broken
+type:chore	c5def5	Setup, tooling, research spike
+type:docs	0075ca	Documentation
+area:mobile	5319e7	Mobile / frontend app
+area:backend	0e8a16	Backend API and services
+area:ml	fbca04	Model training, evaluation, serving
+area:data	f9d0c4	Data sources, ingestion, pipelines
+area:devops	bfd4f2	CI, Docker, deployment
+good first issue	7057ff	Small, well-defined, good for onboarding
+blocked	b60205	Waiting on someone or something; say what in a comment
+needs-supervisor	e99695	Needs a decision or help from the supervisor
+stretch	ededed	Nice to have, only after MVP is done

@@ -1,0 +1,27 @@
+name: Task / spike
+description: Setup work, research, docs, or a time-boxed investigation.
+title: "chore: "
+labels: ["type:chore"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What question does this answer, or what does it set up?
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: For a spike, the output is usually a short doc in docs/ or a comment here with findings.
+      placeholder: |
+        - [ ] Findings written in docs/data/firms.md
+        - [ ] Recommendation: use X because Y
+    validations:
+      required: true
+  - type: input
+    id: timebox
+    attributes:
+      label: Time box
+      placeholder: e.g. 2 days — stop and report what you found, even if incomplete

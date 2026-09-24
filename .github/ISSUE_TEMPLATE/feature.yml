@@ -1,0 +1,43 @@
+name: Feature / user story
+description: Something the system should do that it doesn't yet.
+title: "feat: "
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: story
+    attributes:
+      label: User story
+      description: Who needs it, what they need, and why.
+      placeholder: As a <user>, I want <capability>, so that <benefit>.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How will we know it's done? Concrete and testable.
+      placeholder: |
+        - [ ] GET /fires?bbox=... returns detections from the last 24h
+        - [ ] Invalid bbox returns 422 with a clear message
+        - [ ] Response time under 1s for a city-sized bbox
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [mobile / frontend, backend, ml / ai, data, devops, docs]
+    validations:
+      required: true
+  - type: dropdown
+    id: size
+    attributes:
+      label: Size estimate
+      description: L means "split this into smaller issues before starting".
+      options: ["S (≤ 1 day)", "M (2–3 days)", "L (split it)"]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes, links, open questions

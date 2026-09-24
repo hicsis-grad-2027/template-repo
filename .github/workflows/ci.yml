@@ -1,0 +1,229 @@
+# CI — runs on every pull request and on every push to main.
+#
+# Stack-agnostic: the `detect` job finds every Python, Node and Flutter project
+# in the repo (any folder with pyproject.toml / requirements.txt, package.json,
+# or pubspec.yaml) and runs the matching checks in that folder. A stack that is
+# not present is simply skipped.
+#
+# The only check that branch protection requires is `ci-gate`. It fails if any
+# job above it failed, so adding a new job never means editing the ruleset.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    name: detect stacks
+    runs-on: ubuntu-latest
+    outputs:
+      python: ${{ steps.find.outputs.python }}
+      node: ${{ steps.find.outputs.node }}
+      flutter: ${{ steps.find.outputs.flutter }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        shell: bash
+        run: |
+          # Print a JSON array of the folders that contain any of the given files.
+          dirs_with() {
+            find . \( -name .git -o -name node_modules -o -name .venv -o -name venv \
+                      -o -name build -o -name .dart_tool -o -name dist \) -prune \
+                   -o -type f \( "$@" \) -print0 \
+              | xargs -0 -r -n1 dirname | sort -u | jq -R . | jq -sc .
+          }
+          {
+            echo "python=$(dirs_with -name pyproject.toml -o -name requirements.txt)"
+            echo "node=$(dirs_with -name package.json)"
+            echo "flutter=$(dirs_with -name pubspec.yaml)"
+          } | tee -a "$GITHUB_OUTPUT"
+
+  hygiene:
+    name: repo hygiene
+    runs-on: ubuntu-latest
+    env:
+      MAX_FILE_MB: 5
+      GITLEAKS_VERSION: 8.21.2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Forbidden files (.env, model binaries, huge files)
+        shell: bash
+        run: |
+          # Files listed in .github/hygiene-allowlist (one path per line) are skipped.
+          allow=.github/hygiene-allowlist
+          if [ -f "$allow" ]; then
+            files=$(git ls-files | grep -vxFf "$allow" || true)
+          else
+            files=$(git ls-files)
+          fi
+          fail=0
+
+          envs=$(grep -E '(^|/)\.env(\.[^/]*)?$' <<<"$files" | grep -vE '\.env\.(example|sample|template)$' || true)
+          if [ -n "$envs" ]; then
+            echo "::error::Secret files are committed. Remove them, rotate the keys, and keep only .env.example:"
+            echo "$envs"; fail=1
+          fi
+
+          models=$(grep -iE '\.(pkl|pickle|joblib|h5|hdf5|pt|pth|ckpt|onnx|safetensors|tflite|keras)$' <<<"$files" || true)
+          if [ -n "$models" ]; then
+            echo "::error::Model binaries do not belong in git. See docs/05-ai-and-mlops-concepts.md (Where does the model live?):"
+            echo "$models"; fail=1
+          fi
+
+          limit=$((MAX_FILE_MB * 1024 * 1024))
+          while IFS= read -r f; do
+            [ -f "$f" ] || continue
+            size=$(stat -c %s "$f")
+            if [ "$size" -gt "$limit" ]; then
+              echo "::error file=$f::$f is larger than ${MAX_FILE_MB} MB. Data and media go outside git."
+              fail=1
+            fi
+          done <<<"$files"
+
+          exit $fail
+
+      - name: Secret scan (gitleaks)
+        shell: bash
+        run: |
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz gitleaks
+          # Scans the full history: a key that was committed and later deleted is still leaked.
+          ./gitleaks git . --redact --verbose
+
+  python:
+    name: python (${{ matrix.dir }})
+    needs: detect
+    if: needs.detect.outputs.python != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJSON(needs.detect.outputs.python) }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: |
+          py=$(cat .python-version 2>/dev/null || echo 3.12)
+          if [ -f uv.lock ]; then
+            uv sync --frozen --python "$py"
+          else
+            uv venv --python "$py"
+            if [ -f requirements.txt ]; then
+              uv pip install -r requirements.txt
+              [ -f requirements-dev.txt ] && uv pip install -r requirements-dev.txt
+            else
+              uv pip install -e ".[dev]" || uv pip install -e .
+            fi
+          fi
+          uv pip install ruff pytest
+
+      - name: Lint (ruff)
+        run: .venv/bin/ruff check .
+
+      - name: Format (ruff format --check)
+        run: .venv/bin/ruff format --check . || { echo "::error::Run 'ruff format .' locally and commit."; exit 1; }
+
+      - name: Tests (pytest)
+        run: |
+          set +e
+          .venv/bin/python -m pytest -q
+          code=$?
+          if [ $code -eq 5 ]; then
+            echo "::warning::No tests found in ${{ matrix.dir }}. Add tests before the MVP milestone."
+            exit 0
+          fi
+          exit $code
+
+  node:
+    name: node (${{ matrix.dir }})
+    needs: detect
+    if: needs.detect.outputs.node != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJSON(needs.detect.outputs.node) }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Lint
+        run: npm run lint --if-present
+      - name: Build
+        run: npm run build --if-present
+      - name: Tests
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
+            npm test
+          else
+            echo "::warning::No test script in ${{ matrix.dir }}/package.json."
+          fi
+
+  flutter:
+    name: flutter (${{ matrix.dir }})
+    needs: detect
+    if: needs.detect.outputs.flutter != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJSON(needs.detect.outputs.flutter) }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Format
+        run: dart format --output=none --set-exit-if-changed . || { echo "::error::Run 'dart format .' locally and commit."; exit 1; }
+      - name: Analyze
+        run: flutter analyze
+      - name: Tests
+        run: |
+          if [ -d test ]; then flutter test; else echo "::warning::No test/ folder in ${{ matrix.dir }}."; fi
+
+  ci-gate:
+    # The one required status check. Skipped jobs (stack not present) are fine;
+    # failed or cancelled jobs are not.
+    name: ci-gate
+    if: always()
+    needs: [detect, hygiene, python, node, flutter]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any job failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "::error::One or more CI jobs failed. Open the failed job above for details."
+          exit 1
+      - run: echo "All checks passed."

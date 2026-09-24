@@ -1,0 +1,33 @@
+name: Bug report
+description: Something that used to work, or should work, and doesn't.
+title: "fix: "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Include the exact error message or traceback (as text, not a photo).
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start backend with `docker compose up`
+        2. Call `GET /risk?lat=...&lon=...`
+        3. See 500 error
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: Branch / commit / device / OS.

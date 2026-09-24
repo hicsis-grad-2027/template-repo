@@ -1,0 +1,23 @@
+# CODEOWNERS — who must approve changes to which paths.
+# Branch protection requires a code owner's approval before merging to main.
+#
+# Set to the supervisor's GitHub username. To add a co-supervisor (e.g. the doctor),
+# list both: `*  @omaramir2001 @doctor-username` (either one's approval counts).
+# Every team repo created from the template inherits this file.
+#
+# Pick ONE mode. Later rules override earlier ones for the same path.
+
+# ── Strict mode (default): the instructor approves every PR ─────────────────
+*                       @omaramir2001
+
+# ── Light mode: teammates approve most PRs, the instructor owns what matters ─
+# To switch: delete the `*` line above and uncomment the block below.
+# PRs touching only files with no owner then need ONE approval from anyone
+# with write access (a teammate). PRs touching the paths below still need yours.
+#
+# /.github/              @omaramir2001
+# /docs/architecture.md  @omaramir2001
+# /docs/adr/             @omaramir2001
+# /ml/                   @omaramir2001
+# **/api/                @omaramir2001
+# docker-compose*.yml    @omaramir2001

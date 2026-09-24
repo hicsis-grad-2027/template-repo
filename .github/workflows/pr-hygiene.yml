@@ -1,0 +1,60 @@
+# PR hygiene — cheap checks that teach the team workflow.
+# Rules are explained in docs/01-workflow.md. Required by branch protection as `pr-hygiene`.
+
+name: PR hygiene
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  pr-hygiene:
+    name: pr-hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check title, branch, linked issue, size
+        shell: bash
+        # Untrusted PR fields are passed through env, never interpolated into the script.
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          CHANGED: ${{ github.event.pull_request.additions }}
+          REMOVED: ${{ github.event.pull_request.deletions }}
+          MAX_LINES: 600
+        run: |
+          fail=0
+
+          if [[ "$AUTHOR" == *"[bot]" ]]; then
+            echo "Bot PR, skipping."; exit 0
+          fi
+
+          # 1. Title: conventional commit style. It becomes the squash-merge commit message.
+          if ! [[ "$TITLE" =~ ^(feat|fix|docs|refactor|test|chore|ml|data|ci|perf|style)(\([A-Za-z0-9_-]+\))?!?:\ .{5,}$ ]]; then
+            echo "::error::PR title must look like 'feat(backend): add /risk endpoint'. Got: '$TITLE'"
+            fail=1
+          fi
+
+          # 2. Branch: <type>/<issue-number>-<short-name>, e.g. feat/12-risk-endpoint
+          if ! [[ "$BRANCH" =~ ^(feat|fix|docs|refactor|test|chore|ml|data|ci|perf|style)/[0-9]+-[A-Za-z0-9._-]+$ ]]; then
+            echo "::error::Branch must look like 'feat/12-risk-endpoint' (type/issue-number-name). Got: '$BRANCH'"
+            fail=1
+          fi
+
+          # 3. Linked issue: every PR closes a card on the board.
+          if ! grep -qiE '(close[sd]?|fix(e[sd])?|resolve[sd]?) +#[0-9]+' <<<"$BODY"; then
+            echo "::error::PR description must link its issue, e.g. 'Closes #12'."
+            fail=1
+          fi
+
+          # 4. Size: a warning, not a failure. Big PRs get shallow reviews.
+          total=$((CHANGED + REMOVED))
+          if [ "$total" -gt "$MAX_LINES" ]; then
+            echo "::warning::This PR changes $total lines (guideline: under $MAX_LINES). Consider splitting it."
+          fi
+
+          exit $fail

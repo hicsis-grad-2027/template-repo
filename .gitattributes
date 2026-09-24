@@ -1,0 +1,8 @@
+# Normalize line endings so Windows and Linux teammates don't produce whole-file diffs.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.gif binary
+*.pdf binary

@@ -1,0 +1,68 @@
+# ── Secrets ─────────────────────────────────────────────── never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+
+# ── Data & models ───────────────────────────────── live outside git (see docs/05)
+data/raw/
+data/interim/
+data/processed/
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+*.tflite
+mlruns/
+mlartifacts/
+
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.ipynb_checkpoints/
+
+# ── Node / web ──────────────────────────────────────────
+node_modules/
+dist/
+.next/
+coverage/
+
+# ── Flutter / Dart ──────────────────────────────────────
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+*.iml
+android/.gradle/
+android/local.properties
+ios/Pods/
+
+# ── Editors & OS ────────────────────────────────────────
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# ── Docker volumes / local DB data ──────────────────────
+docker-data/
+mongodb_data/
+postgres_data/
