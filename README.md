@@ -65,11 +65,11 @@ cd mobile && flutter test
 
 ```
 .
-├── mobile/       # or frontend/
-├── backend/
-├── ml/           # training code, not model files
-├── docs/         # architecture, ADRs, data cards, how we work
-└── .github/      # CI, templates, CODEOWNERS
+├── frontend/  # the app or website users see: start with its README
+├── backend/   # API, database, demo data: start with its README
+├── ai/        # AI part (delete if the project has none): start with its README
+├── docs/      # team-wide guides: workflow, done, review, architecture, ADRs
+└── .github/   # CI, templates, CODEOWNERS
 ```
 
 ## Team

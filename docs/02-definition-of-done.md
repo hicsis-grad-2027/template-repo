@@ -9,7 +9,7 @@
 - [ ] New behavior has at least one test (happy path + one failure case)
 - [ ] No secrets, `.env`, datasets or model files in the diff
 - [ ] Every new setting is read from the environment **and** added to `.env.example`
-- [ ] Inputs from users or external APIs are validated at the boundary (see [04](04-engineering-principles.md))
+- [ ] Inputs from users or external APIs are validated at the boundary (see [the engineering principles](../backend/PRINCIPLES.md))
 - [ ] Errors are handled: the user gets a clear message, the logs get the details
 - [ ] README / docs updated if setup, API or behavior changed
 - [ ] Approved by a code owner, all threads resolved
@@ -42,7 +42,7 @@
 - [ ] README: problem, screenshot, architecture diagram, how to run, how to test, team
 - [ ] `docs/architecture.md` is current, and big decisions have an ADR in `docs/adr/`
 - [ ] API is documented (OpenAPI/Swagger for REST backends)
-- [ ] If there's ML: a model card (what data, what metrics, known limits) — see [05](05-ai-and-mlops-concepts.md)
+- [ ] If there's ML: a model card (what data, what metrics, known limits) — see [the AI concepts](../ai/AI-CONCEPTS.md)
 
 **Presentable**
 

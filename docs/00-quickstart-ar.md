@@ -50,8 +50,8 @@ git push -u origin feat/12-risk-endpoint
 | [01-workflow.md](01-workflow.md) | قبل أول PR |
 | [02-definition-of-done.md](02-definition-of-done.md) | قبل كل PR وكل milestone |
 | [03-code-review.md](03-code-review.md) | قبل أول review تعمله |
-| [04-engineering-principles.md](04-engineering-principles.md) | قبل ما تكتب backend أو app logic |
-| [05-ai-and-mlops-concepts.md](05-ai-and-mlops-concepts.md) | لو المشروع فيه جزء AI |
+| [backend/PRINCIPLES.md](../backend/PRINCIPLES.md) | قبل ما تكتب backend أو app logic |
+| [ai/AI-CONCEPTS.md](../ai/AI-CONCEPTS.md) | لو المشروع فيه جزء AI |
 
 ## أول مهمة ليك
 

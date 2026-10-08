@@ -8,8 +8,9 @@ This repo runs like a real engineering team. The rules are few and they are enfo
 2. [docs/01-workflow.md](docs/01-workflow.md) — issue → branch → PR → merge
 3. [docs/02-definition-of-done.md](docs/02-definition-of-done.md) — what "done" and "production-ready" mean here
 4. [docs/03-code-review.md](docs/03-code-review.md) — how to review and be reviewed
-5. [docs/04-engineering-principles.md](docs/04-engineering-principles.md) — the five habits behind good backend code
-6. [docs/05-ai-and-mlops-concepts.md](docs/05-ai-and-mlops-concepts.md) — only if the project has an AI/ML part
+5. [backend/PRINCIPLES.md](backend/PRINCIPLES.md) — the five habits behind good backend code
+6. [ai/AI-CONCEPTS.md](ai/AI-CONCEPTS.md) — only if the project has an AI/ML part
+7. The README in the folder you work in (e.g. `backend/README.md`): how to start and run that part
 
 ## The loop, in one screen
 
