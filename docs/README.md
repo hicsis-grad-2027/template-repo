@@ -10,6 +10,7 @@ Team-wide guides live here. Each part of the code has its own "start here" READM
 | [03 — Code review](03-code-review.md) | Before your first review |
 | [Architecture](architecture.md) | Owned by the team, kept current |
 | [ADRs](adr/) | When making a significant decision |
+| [Graduation book](book/README.md) | From week 1: the book template and the writing guide |
 
 | Part | What it is |
 |---|---|
